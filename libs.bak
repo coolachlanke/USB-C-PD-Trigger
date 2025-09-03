@@ -327,7 +327,9 @@
 					(type none)
 				)
 			)
-			(pin unspecified line
+		)
+		(symbol "CYPD3177-24LQXQ_C2959321_1_1"
+			(pin input line
 				(at -20.32 12.7 0)
 				(length 2.54)
 				(name "VBUS_MIN"
@@ -345,7 +347,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -20.32 10.16 0)
 				(length 2.54)
 				(name "VBUS_MAX"
@@ -363,7 +365,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin output line
 				(at -20.32 7.62 0)
 				(length 2.54)
 				(name "VBUS_FET_EN"
@@ -381,7 +383,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin output line
 				(at -20.32 5.08 0)
 				(length 2.54)
 				(name "SAFE_PWR_EN"
@@ -399,7 +401,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -20.32 2.54 0)
 				(length 2.54)
 				(name "ISNK_COARSE"
@@ -417,7 +419,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -20.32 0 0)
 				(length 2.54)
 				(name "ISNK_FINE"
@@ -435,7 +437,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin output line
 				(at -20.32 -2.54 0)
 				(length 2.54)
 				(name "HPI_INT"
@@ -453,7 +455,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin bidirectional line
 				(at -20.32 -5.08 0)
 				(length 2.54)
 				(name "GPIO_1"
@@ -471,7 +473,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin output line
 				(at -20.32 -7.62 0)
 				(length 2.54)
 				(name "FAULT"
@@ -489,7 +491,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin output line
 				(at -20.32 -10.16 0)
 				(length 2.54)
 				(name "FLIP"
@@ -507,7 +509,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -20.32 -12.7 0)
 				(length 2.54)
 				(name "VDC_OUT"
@@ -525,7 +527,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin bidirectional line
 				(at -20.32 -15.24 0)
 				(length 2.54)
 				(name "HPI_SDA"
@@ -543,7 +545,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 0 17.78 270)
 				(length 2.54)
 				(name "EPAD"
@@ -561,7 +563,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 20.32 12.7 180)
 				(length 2.54)
 				(name "VCCD"
@@ -579,7 +581,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_out line
 				(at 20.32 10.16 180)
 				(length 2.54)
 				(name "VDDD"
@@ -597,7 +599,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 20.32 7.62 180)
 				(length 2.54)
 				(name "GND"
@@ -615,7 +617,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 20.32 5.08 180)
 				(length 2.54)
 				(name "DNU2"
@@ -633,7 +635,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 20.32 2.54 180)
 				(length 2.54)
 				(name "DNU1"
@@ -651,7 +653,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 20.32 0 180)
 				(length 2.54)
 				(name "GND"
@@ -669,7 +671,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 20.32 -2.54 180)
 				(length 2.54)
 				(name "VBUS_IN"
@@ -687,7 +689,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin bidirectional line
 				(at 20.32 -5.08 180)
 				(length 2.54)
 				(name "D+"
@@ -705,7 +707,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin bidirectional line
 				(at 20.32 -7.62 180)
 				(length 2.54)
 				(name "D-"
@@ -723,7 +725,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin bidirectional line
 				(at 20.32 -10.16 180)
 				(length 2.54)
 				(name "CC1"
@@ -741,7 +743,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin bidirectional line
 				(at 20.32 -12.7 180)
 				(length 2.54)
 				(name "CC2"
@@ -759,7 +761,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin bidirectional line
 				(at 20.32 -15.24 180)
 				(length 2.54)
 				(name "HPI_SCL"
@@ -785,7 +787,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "Q"
-			(at 0 10.16 0)
+			(at 0 8.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -798,6 +800,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Footprint" "libs:SO-8_L4.9-W3.9-P1.27-LS5.9-BL"
@@ -859,7 +862,9 @@
 					(type none)
 				)
 			)
-			(pin unspecified line
+		)
+		(symbol "DMP3098LSD-13_1_1"
+			(pin power_out line
 				(at -10.16 5.08 0)
 				(length 2.54)
 				(name "S1"
@@ -877,7 +882,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -10.16 2.54 0)
 				(length 2.54)
 				(name "G1"
@@ -895,7 +900,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at -10.16 0 0)
 				(length 2.54)
 				(name "S2"
@@ -913,7 +918,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -10.16 -2.54 0)
 				(length 2.54)
 				(name "G2"
@@ -931,10 +936,10 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 10.16 5.08 180)
 				(length 2.54)
-				(name "D1"
+				(name "D2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -949,10 +954,10 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 10.16 2.54 180)
 				(length 2.54)
-				(name "D1"
+				(name "D2"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -967,10 +972,10 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 10.16 0 180)
 				(length 2.54)
-				(name "D2"
+				(name "D1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -985,10 +990,10 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 10.16 -2.54 180)
 				(length 2.54)
-				(name "D2"
+				(name "D1"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -1085,7 +1090,9 @@
 					(type none)
 				)
 			)
-			(pin unspecified line
+		)
+		(symbol "KF301-5.0-2P_1_1"
+			(pin power_in line
 				(at -5.08 1.27 0)
 				(length 2.54)
 				(name "1"
@@ -1103,7 +1110,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at -5.08 -1.27 0)
 				(length 2.54)
 				(name "2"
@@ -1173,12 +1180,11 @@
 			)
 		)
 		(property "LCSC Part" "C97054"
-			(at 35.306 22.352 0)
+			(at 6.35 -8.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(symbol "SY8303AIC_0_1"
@@ -1193,7 +1199,9 @@
 					(type background)
 				)
 			)
-			(pin unspecified line
+		)
+		(symbol "SY8303AIC_1_1"
+			(pin power_in line
 				(at -12.7 7.62 0)
 				(length 5.08)
 				(name "IN"
@@ -1211,7 +1219,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at -12.7 3.81 0)
 				(length 5.08)
 				(name "EN"
@@ -1229,7 +1237,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at -12.7 0 0)
 				(length 5.08)
 				(name "FS"
@@ -1247,7 +1255,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at -1.27 -11.43 90)
 				(length 5.08)
 				(name "GND"
@@ -1265,7 +1273,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_in line
 				(at 1.27 -11.43 90)
 				(length 5.08)
 				(name "GND"
@@ -1283,7 +1291,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin passive line
 				(at 12.7 7.62 180)
 				(length 5.08)
 				(name "BS"
@@ -1301,7 +1309,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin power_out line
 				(at 12.7 3.81 180)
 				(length 5.08)
 				(name "LX"
@@ -1319,7 +1327,7 @@
 					)
 				)
 			)
-			(pin unspecified line
+			(pin input line
 				(at 12.7 0 180)
 				(length 5.08)
 				(name "FB"
