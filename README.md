@@ -65,4 +65,4 @@ The board combines an STM32F401RBT6 microcontroller with a Cypress CYPD3177 PD s
 
 ## Render
 
-![USB-C PD Trigger Board](./docs/render.png)
+![USB-C PD Trigger Board](./images/pdtrigger_pcb_render.png)
