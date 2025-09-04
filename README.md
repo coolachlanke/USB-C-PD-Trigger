@@ -5,7 +5,6 @@
 A custom 4-layer PCB for evaluating and triggering USB-C Power Delivery (PD) voltage profiles.  
 The board combines an STM32F401RBT6 microcontroller with a Cypress CYPD3177 PD sink controller, enabling flexible control and monitoring of USB-C PD outputs.
 
----
 
 ## Features
 
@@ -17,8 +16,8 @@ The board combines an STM32F401RBT6 microcontroller with a Cypress CYPD3177 PD s
 - **Microcontroller**
   - STM32F401RBT6
   - SWD header for programming/debugging
-  - USB DFU capability
-  - I2C communication with PD sink
+  - USB DFU capability for easy firmware flashing
+  - I2C communication with PD controller
 
 - **User Interface**
   - Single pushbutton to cycle through PDOs
@@ -43,34 +42,26 @@ The board combines an STM32F401RBT6 microcontroller with a Cypress CYPD3177 PD s
 
 - **Differential Pair Routing (D+/D−)**
   - ~35 mm trace length  
-  - ~1.3 mm mismatch (acceptable for USB Full Speed)  
+  - ~0.9 mm mismatch (acceptable for USB Full Speed)  
   - Routed mainly on bottom layer with coplanar GND pour
-
-- **Impedance Control**
-  - Target: 90 Ω differential  
-  - Widths tuned (~0.286 mm) using JLCPCB calculator
 
 - **Grounding**
   - Full-plane GND layers with stitching vias for shielding  
   - Top and bottom copper filled with GND pours
 
-- **Design Rule Check**
-  - Fully clean, with only minor silkscreen overlap warnings (ignored for fabrication)
-
----
 
 ## Manufacturing
-
-- Gerbers, BOM, and CPL generated using the JLCPCB KiCad plugin  
+- Gerbers, BOM, and CPL generated using the [JLCPCB KiCad plugin](https://github.com/Bouni/kicad-jlcpcb-tools)
 - Board ready for fabrication via JLCPCB  
 
----
 
-## Future Improvements
+## Future Development
+- Develop firmware and config scripts for STM32
+- Test power delivery with electronic load
+- Use USB-C tester to test selected profile
 - Add UART command interface for PDO selection  
 - Expand to higher-speed USB signaling support
 
----
 
 ## Render
 
