@@ -30,7 +30,6 @@ The board combines an STM32F401RBT6 microcontroller with a Cypress CYPD3177 PD s
 - **Debug/Monitoring**
   - Testpoints for VIN, VOUT, and GND
 
----
 
 ## Engineering Notes
 
