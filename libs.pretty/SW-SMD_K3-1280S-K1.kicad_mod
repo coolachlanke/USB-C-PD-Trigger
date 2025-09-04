@@ -265,20 +265,18 @@
 			)
 		)
 	)
-	(pad "" thru_hole circle
+	(pad "" np_thru_hole circle
 		(at 3.41 -3.4)
 		(size 1.1 1.1)
 		(drill 1.1)
-		(layers "*.Cu" "*.Mask")
-		(remove_unused_layers no)
+		(layers "F&B.Cu" "*.Mask")
 		(uuid "876f6ec8-f10d-4c83-a4d5-168232cefaba")
 	)
-	(pad "" thru_hole circle
+	(pad "" np_thru_hole circle
 		(at 3.41 3.4)
 		(size 1.1 1.1)
 		(drill 1.1)
-		(layers "*.Cu" "*.Mask")
-		(remove_unused_layers no)
+		(layers "F&B.Cu" "*.Mask")
 		(uuid "cca7c3b6-f551-48fd-905e-95bebec735de")
 	)
 	(pad "1" smd roundrect
@@ -305,13 +303,13 @@
 	(embedded_fonts no)
 	(model "/libs.3dshapes/SW-SMD_K3-1280S-K1.wrl"
 		(offset
-			(xyz 3.38 -0 0.6)
+			(xyz 3.38 -0 1)
 		)
 		(scale
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz 0 0 0)
+			(xyz -0 -0 -0)
 		)
 	)
 )
