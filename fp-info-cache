@@ -1,4 +1,4 @@
-26665473847284363
+26668988983817606
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -106463,6 +106463,13 @@ CONN-TH_P5.00_KF301-5.0-2P
 2
 2
 libs
+HDR-TH_2P-P2.54-V-M
+
+
+0
+2
+2
+libs
 HDR-TH_4P-P2.54-V-M
 
 
@@ -106488,7 +106495,7 @@ NEW_USB-C-SMD_TYPE-C-6PIN-2MD-073
 
 
 0
-22
+20
 17
 libs
 OSC-SMD_4P-L3.2-W2.5-BL
@@ -106516,8 +106523,15 @@ SW-SMD_K3-1280S-K1
 
 
 0
-5
 3
+3
+libs
+SW-SMD_L3.9-W3.0-P4.45
+
+
+0
+2
+2
 libs
 TQFN-24_L4.0-W4.0-P0.50-TL-EP2.8
 
