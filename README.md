@@ -1,6 +1,5 @@
 # USB-C PD Trigger Board
 
----
 
 ## Overview
 A custom 4-layer PCB for evaluating and triggering USB-C Power Delivery (PD) voltage profiles.  
