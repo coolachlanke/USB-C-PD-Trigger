@@ -1,4 +1,4 @@
-# USB-C PD Trigger Board
+# USB-C PD Trigger Evaluation Board
 
 
 ![USB-C PD Trigger Board](./images/pdtrigger_pcb_render.png)
