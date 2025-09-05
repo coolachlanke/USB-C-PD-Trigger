@@ -48,3 +48,6 @@ Thumbs.db
 *.mov
 *.wmv
 
+# KiCAD lock files
+*.lck
+
