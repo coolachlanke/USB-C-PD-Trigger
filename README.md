@@ -1,6 +1,9 @@
 # USB-C PD Trigger Board
 
 
+![USB-C PD Trigger Board](./images/pdtrigger_pcb_render.png)
+
+
 ## Overview
 A custom 4-layer PCB for evaluating and triggering USB-C Power Delivery (PD) voltage profiles.  
 The board combines an STM32F401RBT6 microcontroller with a Cypress CYPD3177 PD sink controller, enabling flexible control and monitoring of USB-C PD outputs.
@@ -60,8 +63,3 @@ The board combines an STM32F401RBT6 microcontroller with a Cypress CYPD3177 PD s
 - Use USB-C tester to test selected profile
 - Add UART command interface for PDO selection  
 - Expand to higher-speed USB signaling support
-
-
-## Render
-
-![USB-C PD Trigger Board](./images/pdtrigger_pcb_render.png)
