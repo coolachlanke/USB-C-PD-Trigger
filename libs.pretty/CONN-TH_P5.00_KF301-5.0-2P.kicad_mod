@@ -17,6 +17,7 @@
 	(property "Value" "CONN-TH_P5.00_KF301-5.0-2P"
 		(at 0 4 0)
 		(layer "F.Fab")
+		(hide yes)
 		(uuid "52fbfb23-b23b-48a9-8821-6a112a2153c6")
 		(effects
 			(font
@@ -190,6 +191,7 @@
 		(drill 1.399997)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
+		(zone_connect 2)
 		(uuid "dce6110a-c8f6-41ca-a295-a8816a49920d")
 	)
 	(pad "2" thru_hole circle
@@ -198,6 +200,7 @@
 		(drill 1.399997)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
+		(zone_connect 2)
 		(uuid "02a86605-995c-4295-8a09-9ff1c303ff37")
 	)
 	(embedded_fonts no)
