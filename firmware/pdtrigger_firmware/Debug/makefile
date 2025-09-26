@@ -1,94 +1,63 @@
 ################################################################################
-# Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (12.3.rel1)
+# Simple Makefile for STM32F401 + HAL
 ################################################################################
 
--include ../makefile.init
+# Toolchain
+CC      := arm-none-eabi-gcc
+OBJCOPY := arm-none-eabi-objcopy
+SIZE    := arm-none-eabi-size
 
-RM := rm -rf
+# Project name
+TARGET := pdtrigger_firmware
 
-# All of the sources participating in the build are defined here
--include sources.mk
--include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
--include Core/Startup/subdir.mk
--include Core/Src/subdir.mk
--include objects.mk
+# MCU flags
+MCU      := cortex-m4
+FPU      := fpv4-sp-d16
+FLOATABI := hard
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(strip $(S_DEPS)),)
--include $(S_DEPS)
-endif
-ifneq ($(strip $(S_UPPER_DEPS)),)
--include $(S_UPPER_DEPS)
-endif
-ifneq ($(strip $(C_DEPS)),)
--include $(C_DEPS)
-endif
-endif
+CFLAGS  := -mcpu=$(MCU) -mthumb -mfloat-abi=$(FLOATABI) -mfpu=$(FPU)
+CFLAGS  += -std=gnu11 -O0 -g3 -Wall -ffunction-sections -fdata-sections
+CFLAGS  += -DUSE_HAL_DRIVER -DSTM32F401xC
+CFLAGS  += -I../Core/Inc \
+           -I../Drivers/STM32F4xx_HAL_Driver/Inc \
+           -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
+           -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include \
+           -I../Drivers/CMSIS/Include
 
--include ../makefile.defs
+LDFLAGS := -T../STM32F401RCTX_FLASH.ld -Wl,-Map=$(TARGET).map,--gc-sections
+LDFLAGS += --specs=nosys.specs --specs=nano.specs
 
-OPTIONAL_TOOL_DEPS := \
-$(wildcard ../makefile.defs) \
-$(wildcard ../makefile.init) \
-$(wildcard ../makefile.targets) \
+# Sources (auto-collect .c files)
+C_SOURCES := $(wildcard ../Core/Src/*.c) \
+             $(wildcard ../Drivers/STM32F4xx_HAL_Driver/Src/*.c)
 
+ASM_SOURCES := ../Core/Startup/startup_stm32f401rctx.s
 
-BUILD_ARTIFACT_NAME := pdtrigger_firmware
-BUILD_ARTIFACT_EXTENSION := elf
-BUILD_ARTIFACT_PREFIX :=
-BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
+OBJS := $(C_SOURCES:.c=.o) $(ASM_SOURCES:.s=.o)
 
-# Add inputs and outputs from these tool invocations to the build variables 
-EXECUTABLES += \
-pdtrigger_firmware.elf \
+# Default build
+all: $(TARGET).elf $(TARGET).bin $(TARGET).hex size
 
-MAP_FILES += \
-pdtrigger_firmware.map \
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-SIZE_OUTPUT += \
-default.size.stdout \
+%.o: %.s
+	$(CC) -c $< -o $@
 
-OBJDUMP_LIST += \
-pdtrigger_firmware.list \
+$(TARGET).elf: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) -o $@
 
+$(TARGET).bin: $(TARGET).elf
+	$(OBJCOPY) -O binary $< $@
 
-# All Target
-all: main-build
+$(TARGET).hex: $(TARGET).elf
+	$(OBJCOPY) -O ihex $< $@
 
-# Main-build Target
-main-build: pdtrigger_firmware.elf secondary-outputs
+size: $(TARGET).elf
+	$(SIZE) $<
 
-# Tool invocations
-pdtrigger_firmware.elf pdtrigger_firmware.map: $(OBJS) $(USER_OBJS) /home/lcooke/pdtrigger/firmware/pdtrigger_firmware/STM32F401RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "pdtrigger_firmware.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/lcooke/pdtrigger/firmware/pdtrigger_firmware/STM32F401RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="pdtrigger_firmware.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-	@echo 'Finished building target: $@'
-	@echo ' '
+flash: $(TARGET).bin
+	dfu-util -a 0 -s 0x08000000:leave -D $(TARGET).bin
 
-default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-size  $(EXECUTABLES)
-	@echo 'Finished building: $@'
-	@echo ' '
-
-pdtrigger_firmware.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "pdtrigger_firmware.list"
-	@echo 'Finished building: $@'
-	@echo ' '
-
-# Other Targets
 clean:
-	-$(RM) default.size.stdout pdtrigger_firmware.elf pdtrigger_firmware.list pdtrigger_firmware.map
-	-@echo ' '
-
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
-
-fail-specified-linker-script-missing:
-	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
-	@exit 2
-
-warn-no-linker-script-specified:
-	@echo 'Warning: No linker script specified. Check the linker settings in the build configuration.'
-
-.PHONY: all clean dependents main-build fail-specified-linker-script-missing warn-no-linker-script-specified
-
--include ../makefile.targets
+	rm -f $(OBJS) $(TARGET).elf $(TARGET).bin $(TARGET).hex $(TARGET).map

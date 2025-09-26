@@ -98,7 +98,7 @@ int main(void)
   while (1)
   {
 	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0); // flip LED state
-	  HAL_Delay(100);
+	  HAL_Delay(50);
   }
   /* USER CODE END 3 */
 }

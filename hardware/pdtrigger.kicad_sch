@@ -8492,6 +8492,16 @@
 		)
 		(uuid "6134db7c-e399-4ecb-b81f-034ba39efe61")
 	)
+	(polyline
+		(pts
+			(xy 407.67 214.63) (xy 219.71 214.63)
+		)
+		(stroke
+			(width 0.381)
+			(type dash)
+		)
+		(uuid "6208971d-086f-4a47-bcbe-09da630a72c1")
+	)
 	(wire
 		(pts
 			(xy 179.07 73.66) (xy 179.07 74.93)
@@ -12246,7 +12256,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "04d6caed-2837-4290-a2d5-49a645ed1842")
+		(uuid "04d6caed-2837-4290-a2d5-49a645ed1843")
 		(property "Reference" "TP1"
 			(at 162.814 56.134 0)
 			(effects
@@ -12294,7 +12304,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "90baaf12-263c-4886-b34e-76e5fea149b9")
+			(uuid "90baaf12-263c-4886-b34e-76e5fea149ba")
 		)
 		(instances
 			(project "pdtrigger"
@@ -12313,7 +12323,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "04d6caed-2837-4290-a2d5-49a645ed1842")
+		(uuid "04d6caed-2837-4290-a2d5-49a645ed1844")
 		(property "Reference" "TP3"
 			(at 65.024 56.134 0)
 			(effects
@@ -12361,7 +12371,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "90baaf12-263c-4886-b34e-76e5fea149b9")
+			(uuid "90baaf12-263c-4886-b34e-76e5fea149bb")
 		)
 		(instances
 			(project "pdtrigger"
@@ -17395,7 +17405,7 @@
 			)
 		)
 		(property "Value" "+3V3_MCU"
-			(at 189.23 123.19 0)
+			(at 190.5 123.444 0)
 			(effects
 				(font
 					(size 1.27 1.27)
