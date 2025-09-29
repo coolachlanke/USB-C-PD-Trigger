@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -5,166 +6,101 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 dConstruct Robotics Pte Ltd.
+  * Copyright (c) 2025 STMicroelectronics.
   * All rights reserved.
   *
-  ******************************************************************************/
-
-
-//////////////////////// Includes ////////////////////////
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-//////////////////////// Defines ////////////////////////
-#define CYPD_I2C_ADDR   (0x08 << 1)  // HAL expects 8-bit addr
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
 
-I2C_HandleTypeDef hi2c3;
+/* USER CODE END PTD */
 
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
 
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_I2C3_Init(void);
+/* USER CODE BEGIN PFP */
 
-static uint16_t swap16(uint16_t x) {
-  return (x>>8) | (x<<8); 
-}
+/* USER CODE END PFP */
 
-HAL_StatusTypeDef CYPD_Read(uint16_t reg, uint8_t *buf, uint16_t len) {
-    uint16_t reg_swapped = swap16(reg);
-    return HAL_I2C_Mem_Read(&hi2c3, CYPD_I2C_ADDR,
-                            reg_swapped, I2C_MEMADD_SIZE_16BIT,
-                            buf, len, HAL_MAX_DELAY);
-}
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 
-void uart_printf(const char *msg) {
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-}
-
-void print_binary32(uint32_t val, const char *label) {
-    char buf[64];
-    sprintf(buf, "%s = ", label);
-    uart_printf(buf);
-
-    for (int i = 31; i >= 0; i--) {
-        char bit = (val & (1UL << i)) ? '1' : '0';
-        HAL_UART_Transmit(&huart2, (uint8_t*)&bit, 1, HAL_MAX_DELAY);
-
-        // Add a space every 4 bits for readability
-        if (i % 4 == 0) {
-            char space = ' ';
-            HAL_UART_Transmit(&huart2, (uint8_t*)&space, 1, HAL_MAX_DELAY);
-        }
-    }
-    uart_printf("\r\n");
-}
-
-
+/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
   * @retval int
   */
-int main(void) {
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
   SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  MX_I2C3_Init();
+  /* USER CODE BEGIN 2 */
 
-  uint8_t last_button = 1;   // PB7 idle high if pulled-up
-  uint32_t last_tick = 0;
+  /* USER CODE END 2 */
 
-  while (1) {
-    uint8_t devmode = 0xFF;
-    uint8_t bus_voltage = 0;
-
-    // Read DEVICE_MODE
-    if (CYPD_Read(0x0000, &devmode, 1) == HAL_OK) {
-        char buf[32];
-        sprintf(buf, "DEVICE_MODE = 0x%02X\r\n", devmode);
-        uart_printf(buf);
-    } else {
-        uart_printf("DEVICE_MODE read failed!\r\n");
-    }
-
-    // Read SILICON_ID
-    uint8_t silicon_id[2] = {0};
-    if (CYPD_Read(0x0002, silicon_id, 2) == HAL_OK) {
-        uint16_t id = (silicon_id[1] << 8) | silicon_id[0];  // combine LSB/MSB
-        char buf[32];
-        sprintf(buf, "SILICON_ID = 0x%04X\r\n", id);
-        uart_printf(buf);
-    } else {
-        uart_printf("SILICON_ID read failed!\r\n");
-    }
-
-
-    // Read BUS_VOLTAGE
-    if (CYPD_Read(0x100D, &bus_voltage, 1) == HAL_OK) {
-        uint16_t millivolts = bus_voltage * 100; // scale
-        char buf[32];
-        sprintf(buf, "VBUS = %u mV\r\n", millivolts);
-        uart_printf(buf);
-    } else {
-        uart_printf("VBUS read failed!\r\n");
-    }
-
-    // --- Read CURRENT_PDO ---
-    uint8_t pdo_raw[4] = {0};
-    if (CYPD_Read(0x1010, pdo_raw, 4) == HAL_OK) {
-        uint32_t pdo = (pdo_raw[3] << 24) | (pdo_raw[2] << 16) | (pdo_raw[1] << 8) | pdo_raw[0];
-        char buf[64];
-        sprintf(buf, "CURRENT_PDO = 0x%08lX\r\n", (unsigned long)pdo);
-        uart_printf(buf);
-    } else {
-        uart_printf("CURRENT_PDO read failed!\r\n");
-    }
-
-    // --- Read CURRENT_RDO ---
-    uint8_t rdo_raw[4] = {0};
-    if (CYPD_Read(0x1014, rdo_raw, 4) == HAL_OK) {
-        uint32_t rdo = (rdo_raw[3] << 24) | (rdo_raw[2] << 16) | (rdo_raw[1] << 8) | rdo_raw[0];
-        char buf[64];
-        sprintf(buf, "CURRENT_RDO = 0x%08lX\r\n", (unsigned long)rdo);
-        uart_printf(buf);
-    } else {
-        uart_printf("CURRENT_RDO read failed!\r\n");
-    }
-
-    uint8_t button = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
-
-    if (last_button == 1 && button == 0) {   // falling edge
-        uart_printf("Button pressed!\r\n");
-
-        // --- Send 9V @ 3A RDO ---
-        uint32_t rdo = 0x2284B12C; // precomputed RDO for 9V, 3A, object pos=2
-        uint8_t data[4];
-        data[0] = (rdo >> 0) & 0xFF;
-        data[1] = (rdo >> 8) & 0xFF;
-        data[2] = (rdo >> 16) & 0xFF;
-        data[3] = (rdo >> 24) & 0xFF;
-
-        if (HAL_I2C_Mem_Write(&hi2c3, CYPD_I2C_ADDR,
-                              0x1054, I2C_MEMADD_SIZE_16BIT,
-                              data, 4, HAL_MAX_DELAY) == HAL_OK) {
-            uart_printf("RDO (9V@3A) sent!\r\n");
-        } else {
-            uart_printf("RDO write failed!\r\n");
-        }
-    }
-
-
-    last_button = button;
-
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-    HAL_Delay(1000); // log twice per second
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);  // toggle PB0
+	  HAL_Delay(500);                         // wait 500 ms
   }
+  /* USER CODE END 3 */
 }
 
 /**
@@ -210,40 +146,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-}
-
-/**
-  * @brief I2C3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C3_Init(void)
-{
-
-  /* USER CODE BEGIN I2C3_Init 0 */
-
-  /* USER CODE END I2C3_Init 0 */
-
-  /* USER CODE BEGIN I2C3_Init 1 */
-
-  /* USER CODE END I2C3_Init 1 */
-  hi2c3.Instance = I2C3;
-  hi2c3.Init.ClockSpeed = 100000;
-  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c3.Init.OwnAddress1 = 0;
-  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c3.Init.OwnAddress2 = 0;
-  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C3_Init 2 */
-
-  /* USER CODE END I2C3_Init 2 */
-
 }
 
 /**
@@ -294,7 +196,6 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
