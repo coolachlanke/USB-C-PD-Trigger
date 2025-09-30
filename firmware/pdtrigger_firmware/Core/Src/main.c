@@ -10,20 +10,24 @@
   *
   ******************************************************************************/
 
-
 //////////////////////// Includes ////////////////////////
 #include "main.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-
 //////////////////////// Defines ////////////////////////
 #define CYPD_I2C_ADDR   (0x08 << 1)  // HAL expects 8-bit addr
 
+#define REG_DATA_MEM_START   0x1800
+#define REG_SELECT_SINK_PDO  0x1005
+#define REG_PD_RESPONSE      0x1400
+#define REG_CURRENT_PDO      0x1010
+#define REG_CURRENT_RDO      0x1014
+#define REG_BUS_VOLTAGE      0x100D
 
+//////////////////////// Globals ////////////////////////
 I2C_HandleTypeDef hi2c3;
-
 UART_HandleTypeDef huart2;
 
 void SystemClock_Config(void);
@@ -31,8 +35,9 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C3_Init(void);
 
+//////////////////////// Helpers ////////////////////////
 static uint16_t swap16(uint16_t x) {
-  return (x>>8) | (x<<8); 
+    return (x >> 8) | (x << 8);
 }
 
 HAL_StatusTypeDef CYPD_Read(uint16_t reg, uint8_t *buf, uint16_t len) {
@@ -42,130 +47,126 @@ HAL_StatusTypeDef CYPD_Read(uint16_t reg, uint8_t *buf, uint16_t len) {
                             buf, len, HAL_MAX_DELAY);
 }
 
+HAL_StatusTypeDef CYPD_Write(uint16_t reg, uint8_t *buf, uint16_t len) {
+    uint16_t reg_swapped = swap16(reg);
+    return HAL_I2C_Mem_Write(&hi2c3, CYPD_I2C_ADDR,
+                             reg_swapped, I2C_MEMADD_SIZE_16BIT,
+                             buf, len, HAL_MAX_DELAY);
+}
+
 void uart_printf(const char *msg) {
     HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
 }
 
-void print_binary32(uint32_t val, const char *label) {
-    char buf[64];
-    sprintf(buf, "%s = ", label);
-    uart_printf(buf);
+//////////////////////// Test ////////////////////////
+// static const uint8_t snkp_minimal[32] = {
+//     0x53, 0x4E, 0x4B, 0x50,  // "SNKP"
+//     0x00, 0xF0, 0xCB, 0x00,  // PDO1
+//     0x00, 0x00, 0x00, 0x00,  // PDO2
+//     0x00, 0x00, 0x00, 0x00,  // PDO3
+//     0x00, 0x00, 0x00, 0x00,  // PDO4
+//     0x00, 0x00, 0x00, 0x00,  // PDO5
+//     0x00, 0x00, 0x00, 0x00,  // PDO6
+//     0x00, 0x00, 0x00, 0x00   // PDO7
+// };
 
-    for (int i = 31; i >= 0; i--) {
-        char bit = (val & (1UL << i)) ? '1' : '0';
-        HAL_UART_Transmit(&huart2, (uint8_t*)&bit, 1, HAL_MAX_DELAY);
+static const uint8_t snkp_minimal[32] = {
+    // "SNKP"
+    0x53, 0x4E, 0x4B, 0x50,
+    // PDO1: 5V @ 3A  => 0x0001912C (little-endian)
+    0x2C, 0x91, 0x01, 0x00,
+    // PDO2: 9V @ 3A  => 0x0002D12C
+    0x2C, 0xD1, 0x02, 0x00,
+    // PDO3: 12V @ 3A => 0x0003C12C
+    0x2C, 0xC1, 0x03, 0x00,
+    // PDO4: 15V @ 3A => 0x0004B12C
+    0x2C, 0xB1, 0x04, 0x00,
+    // PDO5: 20V @ 3A => 0x0006412C
+    0x2C, 0x41, 0x06, 0x00,
+    // Padding (PDO6, PDO7 unused)
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00
+};
 
-        // Add a space every 4 bits for readability
-        if (i % 4 == 0) {
-            char space = ' ';
-            HAL_UART_Transmit(&huart2, (uint8_t*)&space, 1, HAL_MAX_DELAY);
-        }
+
+void test_snkp_minimal(void) {
+    char buf[128];
+    uint8_t resp[4] = {0};
+
+    uart_printf("=== CYPD3177 SNKP MINIMAL TEST ===\r\n");
+
+    // Step 1: Write minimal SNKP block
+    if (CYPD_Write(REG_DATA_MEM_START, (uint8_t*)snkp_minimal, 32) == HAL_OK) {
+        uart_printf("SNKP minimal payload written\r\n");
+    } else {
+        uart_printf("ERROR: SNKP write failed\r\n");
+        return;
     }
-    uart_printf("\r\n");
-}
 
+    HAL_Delay(50);
 
+    // Step 2: Write SELECT_SINK_PDO = 0x01
+    uint8_t mask = 0x1F;
+    if (CYPD_Write(REG_SELECT_SINK_PDO, &mask, 1) == HAL_OK) {
+        uart_printf("SELECT_SINK_PDO = 0x01 written\r\n");
+    } else {
+        uart_printf("ERROR: SELECT_SINK_PDO write failed\r\n");
+        return;
+    }
 
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void) {
-  HAL_Init();
-  SystemClock_Config();
-  MX_GPIO_Init();
-  MX_USART2_UART_Init();
-  MX_I2C3_Init();
+    HAL_Delay(50);
 
-  uint8_t last_button = 1;   // PB7 idle high if pulled-up
-  uint32_t last_tick = 0;
-
-  while (1) {
-    uint8_t devmode = 0xFF;
-    uint8_t bus_voltage = 0;
-
-    // Read DEVICE_MODE
-    if (CYPD_Read(0x0000, &devmode, 1) == HAL_OK) {
-        char buf[32];
-        sprintf(buf, "DEVICE_MODE = 0x%02X\r\n", devmode);
+    // Step 3: Read PD_RESPONSE
+    if (CYPD_Read(REG_PD_RESPONSE, resp, 4) == HAL_OK) {
+        sprintf(buf, "PD_RESPONSE: Code=0x%02X Len=%u\r\n", resp[0], resp[1]);
         uart_printf(buf);
     } else {
-        uart_printf("DEVICE_MODE read failed!\r\n");
+        uart_printf("ERROR: PD_RESPONSE read failed\r\n");
     }
 
-    // Read SILICON_ID
-    uint8_t silicon_id[2] = {0};
-    if (CYPD_Read(0x0002, silicon_id, 2) == HAL_OK) {
-        uint16_t id = (silicon_id[1] << 8) | silicon_id[0];  // combine LSB/MSB
-        char buf[32];
-        sprintf(buf, "SILICON_ID = 0x%04X\r\n", id);
-        uart_printf(buf);
-    } else {
-        uart_printf("SILICON_ID read failed!\r\n");
-    }
-
-
-    // Read BUS_VOLTAGE
-    if (CYPD_Read(0x100D, &bus_voltage, 1) == HAL_OK) {
-        uint16_t millivolts = bus_voltage * 100; // scale
-        char buf[32];
-        sprintf(buf, "VBUS = %u mV\r\n", millivolts);
-        uart_printf(buf);
-    } else {
-        uart_printf("VBUS read failed!\r\n");
-    }
-
-    // --- Read CURRENT_PDO ---
+    // Step 4: Read CURRENT_PDO
     uint8_t pdo_raw[4] = {0};
-    if (CYPD_Read(0x1010, pdo_raw, 4) == HAL_OK) {
-        uint32_t pdo = (pdo_raw[3] << 24) | (pdo_raw[2] << 16) | (pdo_raw[1] << 8) | pdo_raw[0];
-        char buf[64];
-        sprintf(buf, "CURRENT_PDO = 0x%08lX\r\n", (unsigned long)pdo);
+    if (CYPD_Read(REG_CURRENT_PDO, pdo_raw, 4) == HAL_OK) {
+        uint32_t cur_pdo = (pdo_raw[3]<<24)|(pdo_raw[2]<<16)|(pdo_raw[1]<<8)|pdo_raw[0];
+        sprintf(buf, "CURRENT_PDO = 0x%08lX\r\n", (unsigned long)cur_pdo);
         uart_printf(buf);
-    } else {
-        uart_printf("CURRENT_PDO read failed!\r\n");
     }
 
-    // --- Read CURRENT_RDO ---
+    // Step 5: Read CURRENT_RDO
     uint8_t rdo_raw[4] = {0};
-    if (CYPD_Read(0x1014, rdo_raw, 4) == HAL_OK) {
-        uint32_t rdo = (rdo_raw[3] << 24) | (rdo_raw[2] << 16) | (rdo_raw[1] << 8) | rdo_raw[0];
-        char buf[64];
-        sprintf(buf, "CURRENT_RDO = 0x%08lX\r\n", (unsigned long)rdo);
+    if (CYPD_Read(REG_CURRENT_RDO, rdo_raw, 4) == HAL_OK) {
+        uint32_t cur_rdo = (rdo_raw[3]<<24)|(rdo_raw[2]<<16)|(rdo_raw[1]<<8)|rdo_raw[0];
+        sprintf(buf, "CURRENT_RDO = 0x%08lX\r\n", (unsigned long)cur_rdo);
         uart_printf(buf);
-    } else {
-        uart_printf("CURRENT_RDO read failed!\r\n");
     }
 
-    uint8_t button = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
-
-    if (last_button == 1 && button == 0) {   // falling edge
-        uart_printf("Button pressed!\r\n");
-
-        // --- Send 9V @ 3A RDO ---
-        uint32_t rdo = 0x2284B12C; // precomputed RDO for 9V, 3A, object pos=2
-        uint8_t data[4];
-        data[0] = (rdo >> 0) & 0xFF;
-        data[1] = (rdo >> 8) & 0xFF;
-        data[2] = (rdo >> 16) & 0xFF;
-        data[3] = (rdo >> 24) & 0xFF;
-
-        if (HAL_I2C_Mem_Write(&hi2c3, CYPD_I2C_ADDR,
-                              0x1054, I2C_MEMADD_SIZE_16BIT,
-                              data, 4, HAL_MAX_DELAY) == HAL_OK) {
-            uart_printf("RDO (9V@3A) sent!\r\n");
-        } else {
-            uart_printf("RDO write failed!\r\n");
-        }
+    // Step 6: Read VBUS
+    uint8_t vbus = 0;
+    if (CYPD_Read(REG_BUS_VOLTAGE, &vbus, 1) == HAL_OK) {
+        sprintf(buf, "VBUS = %u mV\r\n", vbus * 100);
+        uart_printf(buf);
     }
 
-
-    last_button = button;
-
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-    HAL_Delay(1000); // log twice per second
-  }
+    uart_printf("=== TEST COMPLETE ===\r\n");
 }
+
+//////////////////////// Main ////////////////////////
+int main(void) {
+    HAL_Init();
+    SystemClock_Config();
+    MX_GPIO_Init();
+    MX_USART2_UART_Init();
+    MX_I2C3_Init();
+
+    HAL_Delay(3000);
+
+    test_snkp_minimal();
+
+    while (1) {
+        HAL_Delay(1000);
+    }
+}
+
 
 /**
   * @brief System Clock Configuration
