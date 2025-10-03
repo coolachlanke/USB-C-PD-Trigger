@@ -1,3 +1,4 @@
+/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -5,28 +6,23 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 dConstruct Robotics Pte Ltd.
+  * Copyright (c) 2025 STMicroelectronics.
   * All rights reserved.
   *
-  ******************************************************************************/
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 
-//////////////////////// Includes ////////////////////////
+
 #include "main.h"
-#include <stdint.h>
-#include <stdio.h>
+#include "cypd3177.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
-//////////////////////// Defines ////////////////////////
-#define CYPD_I2C_ADDR   (0x08 << 1)  // HAL expects 8-bit addr
-
-#define REG_DATA_MEM_START   0x1800
-#define REG_SELECT_SINK_PDO  0x1005
-#define REG_PD_RESPONSE      0x1400
-#define REG_CURRENT_PDO      0x1010
-#define REG_CURRENT_RDO      0x1014
-#define REG_BUS_VOLTAGE      0x100D
-
-//////////////////////// Globals ////////////////////////
 I2C_HandleTypeDef hi2c3;
 UART_HandleTypeDef huart2;
 
@@ -35,122 +31,65 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C3_Init(void);
 
-//////////////////////// Helpers ////////////////////////
-static uint16_t swap16(uint16_t x) {
-    return (x >> 8) | (x << 8);
-}
+// --------------------
+// GPIO pin defines
+// --------------------
+#define BTN_PORT    GPIOB
+#define BTN_PIN     GPIO_PIN_7   // Button input
 
-HAL_StatusTypeDef CYPD_Read(uint16_t reg, uint8_t *buf, uint16_t len) {
-    uint16_t reg_swapped = swap16(reg);
-    return HAL_I2C_Mem_Read(&hi2c3, CYPD_I2C_ADDR,
-                            reg_swapped, I2C_MEMADD_SIZE_16BIT,
-                            buf, len, HAL_MAX_DELAY);
-}
+#define LED_5V_PORT GPIOB
+#define LED_5V_PIN  GPIO_PIN_6
 
-HAL_StatusTypeDef CYPD_Write(uint16_t reg, uint8_t *buf, uint16_t len) {
-    uint16_t reg_swapped = swap16(reg);
-    return HAL_I2C_Mem_Write(&hi2c3, CYPD_I2C_ADDR,
-                             reg_swapped, I2C_MEMADD_SIZE_16BIT,
-                             buf, len, HAL_MAX_DELAY);
-}
+#define LED_9V_PORT GPIOB
+#define LED_9V_PIN  GPIO_PIN_5
 
-void uart_printf(const char *msg) {
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
-}
+#define LED_12V_PORT GPIOB
+#define LED_12V_PIN  GPIO_PIN_4
 
-//////////////////////// Test ////////////////////////
-// static const uint8_t snkp_minimal[32] = {
-//     0x53, 0x4E, 0x4B, 0x50,  // "SNKP"
-//     0x00, 0xF0, 0xCB, 0x00,  // PDO1
-//     0x00, 0x00, 0x00, 0x00,  // PDO2
-//     0x00, 0x00, 0x00, 0x00,  // PDO3
-//     0x00, 0x00, 0x00, 0x00,  // PDO4
-//     0x00, 0x00, 0x00, 0x00,  // PDO5
-//     0x00, 0x00, 0x00, 0x00,  // PDO6
-//     0x00, 0x00, 0x00, 0x00   // PDO7
-// };
+#define LED_15V_PORT GPIOB
+#define LED_15V_PIN  GPIO_PIN_3
 
-static const uint8_t snkp_minimal[32] = {
-    // "SNKP"
-    0x53, 0x4E, 0x4B, 0x50,
-    // PDO1: 5V @ 3A  => 0x0001912C (little-endian)
-    0x2C, 0x91, 0x01, 0x00,
-    // PDO2: 9V @ 3A  => 0x0002D12C
-    0x2C, 0xD1, 0x02, 0x00,
-    // PDO3: 12V @ 3A => 0x0003C12C
-    0x2C, 0xC1, 0x03, 0x00,
-    // PDO4: 15V @ 3A => 0x0004B12C
-    0x2C, 0xB1, 0x04, 0x00,
-    // PDO5: 20V @ 3A => 0x0006412C
-    0x2C, 0x41, 0x06, 0x00,
-    // Padding (PDO6, PDO7 unused)
-    0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00
-};
+#define LED_20V_PORT GPIOD
+#define LED_20V_PIN  GPIO_PIN_2
 
+// PDO encodings (example currents, adjust for your supply!)
+#define PDO_5V   0x0001912C  // 5 V, 3 A
+#define PDO_9V   0x0002D12C  // 9 V, 3 A
+#define PDO_12V  0x0003C12C  // 12 V, 3 A
+#define PDO_15V  0x0004B12C  // 15 V, 3 A
+#define PDO_20V  0x0006412C  // 20 V, 3 A
 
-void test_snkp_minimal(void) {
+static const uint32_t pdos[] = {PDO_5V, PDO_9V, PDO_12V, PDO_15V, PDO_20V};
+static uint8_t pdo_index = 0;
+
+// --------------------
+// Simple UART printf wrapper
+// --------------------
+static void uart_printf(const char *fmt, ...)
+{
     char buf[128];
-    uint8_t resp[4] = {0};
-
-    uart_printf("=== CYPD3177 SNKP MINIMAL TEST ===\r\n");
-
-    // Step 1: Write minimal SNKP block
-    if (CYPD_Write(REG_DATA_MEM_START, (uint8_t*)snkp_minimal, 32) == HAL_OK) {
-        uart_printf("SNKP minimal payload written\r\n");
-    } else {
-        uart_printf("ERROR: SNKP write failed\r\n");
-        return;
-    }
-
-    HAL_Delay(50);
-
-    // Step 2: Write SELECT_SINK_PDO = 0x01
-    uint8_t mask = 0x1F;
-    if (CYPD_Write(REG_SELECT_SINK_PDO, &mask, 1) == HAL_OK) {
-        uart_printf("SELECT_SINK_PDO = 0x01 written\r\n");
-    } else {
-        uart_printf("ERROR: SELECT_SINK_PDO write failed\r\n");
-        return;
-    }
-
-    HAL_Delay(50);
-
-    // Step 3: Read PD_RESPONSE
-    if (CYPD_Read(REG_PD_RESPONSE, resp, 4) == HAL_OK) {
-        sprintf(buf, "PD_RESPONSE: Code=0x%02X Len=%u\r\n", resp[0], resp[1]);
-        uart_printf(buf);
-    } else {
-        uart_printf("ERROR: PD_RESPONSE read failed\r\n");
-    }
-
-    // Step 4: Read CURRENT_PDO
-    uint8_t pdo_raw[4] = {0};
-    if (CYPD_Read(REG_CURRENT_PDO, pdo_raw, 4) == HAL_OK) {
-        uint32_t cur_pdo = (pdo_raw[3]<<24)|(pdo_raw[2]<<16)|(pdo_raw[1]<<8)|pdo_raw[0];
-        sprintf(buf, "CURRENT_PDO = 0x%08lX\r\n", (unsigned long)cur_pdo);
-        uart_printf(buf);
-    }
-
-    // Step 5: Read CURRENT_RDO
-    uint8_t rdo_raw[4] = {0};
-    if (CYPD_Read(REG_CURRENT_RDO, rdo_raw, 4) == HAL_OK) {
-        uint32_t cur_rdo = (rdo_raw[3]<<24)|(rdo_raw[2]<<16)|(rdo_raw[1]<<8)|rdo_raw[0];
-        sprintf(buf, "CURRENT_RDO = 0x%08lX\r\n", (unsigned long)cur_rdo);
-        uart_printf(buf);
-    }
-
-    // Step 6: Read VBUS
-    uint8_t vbus = 0;
-    if (CYPD_Read(REG_BUS_VOLTAGE, &vbus, 1) == HAL_OK) {
-        sprintf(buf, "VBUS = %u mV\r\n", vbus * 100);
-        uart_printf(buf);
-    }
-
-    uart_printf("=== TEST COMPLETE ===\r\n");
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    HAL_UART_Transmit(&huart2, (uint8_t*)buf, strlen(buf), HAL_MAX_DELAY);
 }
 
-//////////////////////// Main ////////////////////////
+// --------------------
+// LED update: turn on only active PDO LED
+// --------------------
+static void update_leds(uint8_t index)
+{
+    HAL_GPIO_WritePin(LED_5V_PORT, LED_5V_PIN,  (index == 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_9V_PORT, LED_9V_PIN,  (index == 1) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_12V_PORT, LED_12V_PIN,(index == 2) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_15V_PORT, LED_15V_PIN,(index == 3) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_20V_PORT, LED_20V_PIN,(index == 4) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+}
+
+// --------------------
+// Main program
+// --------------------
 int main(void) {
     HAL_Init();
     SystemClock_Config();
@@ -158,12 +97,50 @@ int main(void) {
     MX_USART2_UART_Init();
     MX_I2C3_Init();
 
-    HAL_Delay(3000);
+    uart_printf("\r\n=== CYPD3177 PDO Button Switcher ===\r\n");
+    update_leds(pdo_index); // Turn on 5V LED, as this is the default PDO
 
-    test_snkp_minimal();
+    bool online = false;
+    uint16_t vbus = 0;
 
     while (1) {
-        HAL_Delay(1000);
+        
+      HAL_Delay(100);
+
+        if (CYPD3177_Online(&online) == HAL_OK && online) {
+            // Turn ON status LED if chip is online
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
+
+            // Check bus voltage
+            if (CYPD3177_VBUS_mV(&vbus) == HAL_OK) {
+                uart_printf("VBUS: %u mV\r\n", vbus);
+            }
+
+            // Button pressed? (active low)
+            if (HAL_GPIO_ReadPin(BTN_PORT, BTN_PIN) == GPIO_PIN_RESET) {
+                // Advance PDO index
+                pdo_index = (pdo_index + 1) % (sizeof(pdos)/sizeof(pdos[0]));
+                uint32_t req[2] = {pdos[0], pdos[pdo_index]};
+
+                if (CYPD3177_ChangePDO(req) == HAL_OK) {
+                    uart_printf(">> Requested PDO[%u], V=%u mV\r\n",
+                                pdo_index,
+                                ((pdos[pdo_index] >> 10) & 0x3FF) * 50);
+                    update_leds(pdo_index);
+                } else {
+                    uart_printf("PDO change failed!\r\n");
+                }
+
+                // wait for button release
+                while (HAL_GPIO_ReadPin(BTN_PORT, BTN_PIN) == GPIO_PIN_RESET) {
+                    HAL_Delay(10);
+                }
+            }
+        } else {
+            // Turn OFF status LED => chip offline
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+            uart_printf("CYPD3177 not active.\r\n");
+        }
     }
 }
 
@@ -313,6 +290,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PD2 */
   GPIO_InitStruct.Pin = GPIO_PIN_2;
