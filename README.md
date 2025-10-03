@@ -120,7 +120,7 @@ HAL_StatusTypeDef CYPD3177_ChangePDO(uint32_t *pdo) {
 
 - From here, transferred all my pre-computed PDOs and set up a script to change the PDO using `CYPD3177_ChangePDO(uint32_t *pdo);` via a button press (attached to pin PB7) to cycle 5V -> 9V -> 12V -> 15V -> 20V -> 5V. An indicator LED_n illumiated when PDO_n is asserted. Additionally, the STATUS LED illuminates when the CYPD successfully powers on, and the FAULT LED illuminates when the requested PDO cannot be negotiated (for example from a dumb USSB Type-A cable).
 
-- Validation & Testing: used an electronic load to draw current at each PDO and confirm stability. Also tested the source's ablity to cut power when too much current is demanded by the sink. With a 3A current setting, I found the source shut off at about 3.5A. This will vary from source to source, thus motivating the use of an on-board current-sense resistor to trigger CYPD3177 overcurrent shutdown events. The image below shows the board drawing 58w from the Type-C cable, with the indicator LED showing that the device is negotiating 20V.
+- Validation & Testing: used an electronic load to draw current at each PDO and confirm stability. Also tested the source's ablity to cut power when too much current is demanded by the sink. With a 3A current setting, I found the source shut off at about 3.5A. This will vary from source to source, thus motivating the use of an on-board current-sense resistor to trigger CYPD3177 overcurrent shutdown events. The image below shows the board drawing 58W from the Type-C cable, with the indicator LED showing that the device is negotiating 20V.
 
 ![PCB High Power Draw](./documentation/pcb_power.jpg)
 
